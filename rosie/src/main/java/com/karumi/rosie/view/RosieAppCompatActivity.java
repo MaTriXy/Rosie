@@ -17,7 +17,7 @@
 package com.karumi.rosie.view;
 
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AppCompatActivity;
 import com.karumi.rosie.application.RosieApplication;
 import com.karumi.rosie.module.RosieActivityModule;
 import dagger.ObjectGraph;
@@ -29,14 +29,14 @@ import java.util.List;
  * library. All activities in this project should extend from this one to be able to use core
  * features like view injection, dependency injection or Rosie presenters.
  */
-public abstract class RosieActivity extends FragmentActivity
+public abstract class RosieAppCompatActivity extends AppCompatActivity
     implements RosiePresenter.View, Injectable {
 
   private ObjectGraph activityScopeGraph;
   private PresenterLifeCycleLinker presenterLifeCycleLinker = new PresenterLifeCycleLinker();
 
   /**
-   * Initializes the object graph associated to the activity scope and links presenters to the
+   * Initializes the object graph associated to the activity scope, and links presenters to the
    * Activity life cycle.
    */
   @Override protected void onCreate(Bundle savedInstanceState) {
@@ -125,15 +125,15 @@ public abstract class RosieActivity extends FragmentActivity
     return new ArrayList<>();
   }
 
+  private boolean shouldInitializeActivityScopeGraph() {
+    return activityScopeGraph == null;
+  }
+
   /**
    * Registers a presenter to link to this activity.
    */
   protected final void registerPresenter(RosiePresenter presenter) {
     presenterLifeCycleLinker.registerPresenter(presenter);
-  }
-
-  private boolean shouldInitializeActivityScopeGraph() {
-    return activityScopeGraph == null;
   }
 
   private void injectActivityModules() {

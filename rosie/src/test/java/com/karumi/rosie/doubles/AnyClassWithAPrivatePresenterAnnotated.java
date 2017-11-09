@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package com.karumi.rosie.sample.characters.view.renderer;
+package com.karumi.rosie.doubles;
 
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import com.karumi.rosie.sample.R;
-import com.karumi.rosie.sample.base.view.renderer.MarvelRenderer;
-import com.karumi.rosie.sample.characters.view.viewmodel.CharacterViewModel;
+import com.karumi.rosie.view.Presenter;
+import com.karumi.rosie.view.RosiePresenter;
 
-public class LoadMoreCharactersRenderer extends MarvelRenderer<CharacterViewModel> {
+public class AnyClassWithAPrivatePresenterAnnotated {
 
-  @Override protected View inflate(LayoutInflater inflater, ViewGroup parent) {
-    return inflater.inflate(R.layout.item_load_more, parent, false);
-  }
+  @Presenter private RosiePresenter<RosiePresenter.View> presenter;
 }

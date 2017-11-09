@@ -18,12 +18,13 @@ package com.karumi.rosie.view;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import butterknife.ButterKnife;
+
 
 /**
  * Base Fragment created to implement some common functionality to every Fragment using this
@@ -49,29 +50,36 @@ public abstract class RosieFragment extends Fragment implements RosiePresenter.V
    * Injects the Fragment dependencies if this injection wasn't performed previously in other
    * Fragment life cycle event.
    */
-  @Override public void onAttach(Activity activity) {
-    super.onAttach(activity);
+  @Override public void onAttach(Context context) {
+    super.onAttach(context);
     injectDependencies();
   }
 
   @Nullable @Override public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
-    int layoutId = getLayoutId();
-    View view = inflater.inflate(layoutId, container, false);
-    ButterKnife.bind(this, view);
+    injectDependencies();
+    View view = inflater.inflate(getLayoutId(), container, false);
+    onPrepareFragment(view);
     return view;
   }
 
   /**
-   * Injects the Fragment views using Butter Knife library.
+   * Initializes the presenter lifecycle.
    */
   @Override public void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    presenterLifeCycleLinker.addAnnotatedPresenter(getClass().getDeclaredFields(), this);
-    presenterLifeCycleLinker.setView(this);
     onPreparePresenter();
-    presenterLifeCycleLinker.initializePresenters();
+    presenterLifeCycleLinker.initializeLifeCycle(this, this);
   }
+
+  /**
+   * Called before returning the view in onCreateView.
+   * Override this method to configure your fragment or bind views.
+   */
+  protected void onPrepareFragment(View view) {
+
+  }
+
 
   /**
    * Called before to initialize all the presenter instances linked to the component lifecycle.
@@ -82,16 +90,15 @@ public abstract class RosieFragment extends Fragment implements RosiePresenter.V
   }
 
   /**
-   * Connects the Fragment onResume method with the presenter used in this Activity.
+   * Connects the Fragment onResume method with the presenters associated to the fragment.
    */
   @Override public void onResume() {
     super.onResume();
-    presenterLifeCycleLinker.setView(this);
-    presenterLifeCycleLinker.updatePresenters();
+    presenterLifeCycleLinker.updatePresenters(this);
   }
 
   /**
-   * Connects the Fragment onPause method with the presenter used in this Activity.
+   * Connects the Fragment onPause method with the presenters associated to the fragment.
    */
   @Override public void onPause() {
     super.onPause();
@@ -99,7 +106,7 @@ public abstract class RosieFragment extends Fragment implements RosiePresenter.V
   }
 
   /**
-   * Connects the Fragment onDestroy method with the presenter used in this Activity.
+   * Connects the Fragment onDestroy method with the presenters associated to the fragment.
    */
   @Override public void onDestroy() {
     super.onDestroy();
@@ -115,20 +122,21 @@ public abstract class RosieFragment extends Fragment implements RosiePresenter.V
   }
 
   /**
-   * Returns the layout id associated to the layout used in the activity.
+   * Returns the layout id associated to the layout used in the fragment.
    */
   protected abstract int getLayoutId();
 
   /**
-   * Registers a presenter to link to this activity
+   * Registers a presenter to link to this fragment.
    */
   protected final void registerPresenter(RosiePresenter presenter) {
     presenterLifeCycleLinker.registerPresenter(presenter);
   }
 
   private void injectDependencies() {
-    if (!injected && shouldInjectFragment()) {
-      ((RosieActivity) getActivity()).inject(this);
+    Activity activity = getActivity();
+    if (!injected && activity instanceof Injectable && shouldInjectFragment()) {
+      ((Injectable) activity).inject(this);
       injected = true;
     }
   }

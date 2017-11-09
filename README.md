@@ -1,4 +1,4 @@
-![Karumi logo][karumilogo]Rosie [![Build Status](https://travis-ci.org/Karumi/Rosie.svg?branch=master)](https://travis-ci.org/Karumi/Rosie) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.karumi.rosie/rosie/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.karumi.rosie/rosie)
+![Karumi logo][karumilogo]Rosie [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.karumi.rosie/rosie/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.karumi.rosie/rosie)
 ======
 
 > The only way to make the deadline—the only way to go fast—is to keep the code as clean as possible at all times.
@@ -23,6 +23,10 @@ Screenshots
 
 ![Screencast](./art/screencast.gif)
 
+Application UI/UX designs by Luis Herrero.
+
+Data provided by Marvel. © 2016 MARVEL
+
 Usage
 -----
 
@@ -35,6 +39,8 @@ public class SampleApplication extends RosieApplication {
 	}
 }
 ```
+
+**Extending from ``RosieApplication`` is needed to be able to easily use the configuration Rosie provides you related to Dependency Injection. If you do not want to use Dependency Injection in your project, you do not need to extend from ``RosieApplication``.**
 
 
 Rosie provides several base classes to start implementing your architecture separated in three layers, **view**, **domain** and **repository**. Let's explore them in detail.
@@ -49,16 +55,41 @@ public class SampleActivity extends RosieActivity {
 }
 ```
 
-####Butter Knife
-
-By extending Rosie view classes, you will have access in your activities and fragments to [ButterKnife] [butterknife] annotations to easily inject your views:
+**Extending from ``RosieActivity`` or ``RosieFragment`` is not mandatory. If your project is already extending from any other base Activity please review the class ``PresenterLifeCycleLinker`` and use it inside your base Activity or your Activities as follow:**
 
 ```java
-public class SampleActivity extends RosieActivity {
-	@Bind(R.id.sample_view) TextView sampleView;
-	/*...*/
+public abstract class MyBaseActivity extends FragmentActivity
+    implements RosiePresenter.View {
+
+  private PresenterLifeCycleLinker presenterLifeCycleLinker = new PresenterLifeCycleLinker();
+
+  @Override protected void onCreate(Bundle savedInstanceState) {
+    ...
+    presenterLifeCycleLinker.initializeLifeCycle(this, this);
+    ...
+  }
+  @Override protected void onResume() {
+    ...
+    presenterLifeCycleLinker.updatePresenters(this);
+    ...
+  }
+
+  @Override protected void onPause() {
+    ...
+    presenterLifeCycleLinker.pausePresenters();
+    ...
+  }
+
+  @Override protected void onDestroy() {
+    ...
+    super.onDestroy();
+    ...
+  }
+
 }
 ```
+
+Rosie provides you some base classes to be extended and give you a quick access to the Dependency Injection and Model View Presenter features, but the usage of inheritance to use these features is not mandatory.
 
 ####Dagger
 
@@ -129,10 +160,6 @@ To understand when the lifecycle methods are called take a look at the following
 | ``update``      | ``onResume``   | ``onResume``       |
 | ``pause``       | ``onPause``    | ``onPause``        |
 | ``destroy``     | ``onDestroy``  | ``onDestroy``      |
-
-####Renderers
-
-Finally, Rosie includes the [Renderers] [renderers] library to simplify your ``RecyclerView`` handling code. If you decide to use Renderers, remember to extend directly from ``RosieRenderer<T>`` to have ButterKnife injections for free in your renderer views.
 
 ###Domain
 
@@ -360,7 +387,7 @@ Include the library in your ``build.gradle``
 
 ```groovy
 dependencies{
-    compile 'com.karumi.rosie:rosie:1.0.0'
+    compile 'com.karumi.rosie:rosie:2.0.0'
 }
 ```
 
@@ -370,11 +397,23 @@ or to your ``pom.xml`` if you are using Maven
 <dependency>
     <groupId>com.karumi.rosie</groupId>
     <artifactId>rosie</artifactId>
-    <version>1.0.0</version>
+    <version>2.0.0</version>
     <type>aar</type>
 </dependency>
 
 ```
+
+More information?
+-----------------
+
+We are writing some blog posts to explain the main motivations behind Rosie and some desing considerations:
+
+* Presentation layer: http://blog.karumi.com/inside-rosie-the-presentation-layer/
+
+Related projects
+----------------
+
+* [Kotlin MVP-Clean Rosie Architecture](https://android-arsenal.com/details/3/5750)
 
 Do you want to contribute?
 --------------------------
@@ -383,16 +422,13 @@ Feel free to report us or add any useful feature to the library, we will be glad
 
 Keep in mind that your PRs **must** be validated by Travis-CI. Please, run a local build with ``./gradlew checkstyle build connectedCheck`` before submitting your code.
 
-
 Libraries used in this project
 ------------------------------
 
 * [JUnit] [junit]
 * [Mockito] [mockito]
 * [Robolectric] [robolectric]
-* [ButterKnife] [butterknife]
 * [Dagger] [dagger]
-* [Renderers] [renderers]
 * [Android Priority Job Queue] [jobqueue]
 
 License
@@ -423,6 +459,4 @@ License
 [mockito]: https://github.com/mockito/mockito
 [robolectric]: https://github.com/robolectric/robolectric
 [dagger]: https://github.com/square/dagger
-[butterknife]: https://github.com/JakeWharton/butterknife
-[renderers]: https://github.com/pedrovgs/renderers
 [jobqueue]: https://github.com/yigit/android-priority-jobqueue
